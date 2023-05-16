@@ -1,3 +1,6 @@
+import q
+q.writer.color=False
+
 import re
 import sys
 from abc import ABC, abstractmethod
@@ -958,7 +961,9 @@ class Parser(ABC):
         format_: Optional[bool] = True,
         settings_path: Optional[Path] = None,
     ) -> Union[str, Dict[Tuple[str, ...], Result]]:
+        q.q(__file__, 'parse()=>parse_raw()', with_import, format_, settings_path)
         self.parse_raw()
+        q.q(__file__, 'parse()<=parse_raw()', self.results)
 
         if with_import:
             if self.target_python_version != PythonVersion.PY_36:
@@ -1083,6 +1088,7 @@ class Parser(ABC):
                 body=body, source=models[0].file_path if models else None
             )
 
+        q.q(__file__, 'return parse()', results)
         # retain existing behaviour
         if [*results] == [('__init__.py',)]:
             return results[('__init__.py',)].body

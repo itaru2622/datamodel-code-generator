@@ -57,6 +57,7 @@ PySnooper = ">=0.4.1,<2.0.0"
 toml = ">=0.10.0,<1.0.0"
 genson = ">=1.2.1,<2.0"
 httpx = { version = "*", optional = true }
+q = "*"
 packaging = "*"
 
 [tool.poetry.group.dev.dependencies]

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import q
+q.writer.color=False
+
 import enum as _enum
 from collections import defaultdict
 from contextlib import contextmanager
@@ -1169,6 +1172,7 @@ class JsonSchemaParser(Parser):
         obj: JsonSchemaObject,
         path: List[str],
     ) -> DataType:
+        q.q(__file__, 'starts parse_root_type()', name, path, obj)
         if obj.ref:
             data_type: DataType = self.get_ref_data_type(obj.ref)
         elif obj.custom_type_path:
@@ -1194,6 +1198,7 @@ class JsonSchemaParser(Parser):
                 data_type = data_types[0]
         elif obj.patternProperties:
             data_type = self.parse_pattern_properties(name, obj.patternProperties, path)
+            q.q(__file__, 'parse_root_type()<=parse_pattern_properties()', name, path, data_type)
         elif obj.enum:
             if self.should_parse_enum_as_literal(obj):
                 data_type = self.parse_enum_as_literal(obj)
@@ -1240,6 +1245,7 @@ class JsonSchemaParser(Parser):
             nullable=obj.type_has_null,
         )
         self.results.append(data_model_root_type)
+        q.q(__file__, 'parse_root_type()=>self.results.append()', reference, data_model_root_type, self.results)
         return self.data_type(reference=reference)
 
     def parse_enum_as_literal(self, obj: JsonSchemaObject) -> DataType:
@@ -1507,6 +1513,7 @@ class JsonSchemaParser(Parser):
         obj: JsonSchemaObject,
         path: List[str],
     ) -> None:
+        q.q(__file__, 'starts parse_obj', name, path, obj)
         if obj.is_array:
             self.parse_array(name, obj, path)
         elif obj.allOf:
@@ -1518,6 +1525,7 @@ class JsonSchemaParser(Parser):
         elif obj.properties:
             self.parse_object(name, obj, path)
         elif obj.patternProperties:
+            q.q(__file__, ' patternProp:parse_obj=>parse_root_type', name, path, obj)
             self.parse_root_type(name, obj, path)
         elif obj.type == 'object':
             self.parse_object(name, obj, path)
@@ -1549,6 +1557,7 @@ class JsonSchemaParser(Parser):
             ), self.model_resolver.current_root_context(path_parts):
                 yield source, path_parts
 
+    @q.t
     def parse_raw(self) -> None:
         for source, path_parts in self._get_context_source_path_parts():
             self.raw_obj = load_yaml(source.text)
@@ -1625,29 +1634,36 @@ class JsonSchemaParser(Parser):
             with self.root_id_context(raw):
                 # parse $id before parsing $ref
                 root_obj = JsonSchemaObject.parse_obj(raw)
+                q.q(__file__, path_parts, object_paths, root_obj)
                 self.parse_id(root_obj, path_parts)
                 try:
                     definitions = get_model_by_path(raw, self.schema_paths)
+                    q.q(__file__, definitions)
                 except KeyError:
                     definitions = {}
                 for key, model in definitions.items():
                     obj = JsonSchemaObject.parse_obj(model)
+                    q.q(__file__, key, obj)
                     self.parse_id(obj, [*path_parts, self.SCHEMA_PATH, key])
 
                 if object_paths:
                     models = get_model_by_path(raw, object_paths)
                     model_name = object_paths[-1]
+                    q.q(__file__, 'object_paths=>self.parse_obj', model_name, models)
                     self.parse_obj(model_name, JsonSchemaObject.parse_obj(models), path)
                 else:
+                    q.q(__file__, '!object_paths=>self.parse_obj', obj_name)
                     self.parse_obj(obj_name, root_obj, path_parts or ['#'])
                 for key, model in definitions.items():
                     path = [*path_parts, self.SCHEMA_PATH, key]
                     reference = self.model_resolver.get(path)
                     if not reference or not reference.loaded:
+                        q.q(__file__, '!reference or not loaded=>parse_raw_obj', key, path, model)
                         self.parse_raw_obj(key, model, path)
 
                 key = tuple(path_parts)
                 reserved_refs = set(self.reserved_refs.get(key) or [])
+                q.q(__file__, reserved_refs)
                 while reserved_refs:
                     for reserved_path in sorted(reserved_refs):
                         reference = self.model_resolver.get(reserved_path)
@@ -1657,6 +1673,7 @@ class JsonSchemaParser(Parser):
                         path = reserved_path.split('/')
                         models = get_model_by_path(raw, object_paths)
                         model_name = object_paths[-1]
+                        q.q(__file__, 'reserved_refs=>self.parse_obj', model_name, path, models)
                         self.parse_obj(
                             model_name, JsonSchemaObject.parse_obj(models), path
                         )
