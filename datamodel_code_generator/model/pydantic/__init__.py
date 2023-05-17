@@ -6,6 +6,7 @@ from pydantic import BaseModel as _BaseModel
 
 from .base_model import BaseModel, DataModelField
 from .custom_root_type import CustomRootType
+from .pattern_properties_type import PatternPropertiesType
 from .dataclass import DataClass
 from .types import DataTypeManager
 
@@ -39,6 +40,7 @@ __all__ = [
     'BaseModel',
     'DataModelField',
     'CustomRootType',
+    'PatternPropertiesType',
     'DataClass',
     'dump_resolve_reference_action',
     'DataTypeManager'

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 class DataModelSet(NamedTuple):
     data_model: Type[DataModel]
     root_model: Type[DataModel]
+    patternproperties_model: Optional[Type[DataModel]]
     field_model: Type[DataModelFieldBase]
     data_type_manager: Type[DataTypeManagerABC]
     dump_resolve_reference_action: Optional[Callable[[Iterable[str]], str]]
@@ -26,6 +27,7 @@ def get_data_model_types(data_model_type: DataModelType) -> DataModelSet:
         return DataModelSet(
             data_model=pydantic.BaseModel,
             root_model=pydantic.CustomRootType,
+            patternproperties_model=pydantic.PatternPropertiesType,
             field_model=pydantic.DataModelField,
             data_type_manager=pydantic.DataTypeManager,
             dump_resolve_reference_action=pydantic.dump_resolve_reference_action,

@@ -313,6 +313,7 @@ class Parser(ABC):
         *,
         data_model_type: Type[DataModel] = pydantic_model.BaseModel,
         data_model_root_type: Type[DataModel] = pydantic_model.CustomRootType,
+        data_model_patternproperties_type: Optional[Type[DataModel]] = pydantic_model.PatternPropertiesType,
         data_type_manager_type: Type[DataTypeManager] = pydantic_model.DataTypeManager,
         data_model_field_type: Type[DataModelFieldBase] = pydantic_model.DataModelField,
         base_class: Optional[str] = None,
@@ -380,6 +381,7 @@ class Parser(ABC):
         )
         self.data_model_type: Type[DataModel] = data_model_type
         self.data_model_root_type: Type[DataModel] = data_model_root_type
+        self.data_model_patternproperties_type: Optional[Type[DataModel]] = data_model_patternproperties_type
         self.data_model_field_type: Type[DataModelFieldBase] = data_model_field_type
         self.imports: Imports = Imports()
         self.base_class: Optional[str] = base_class

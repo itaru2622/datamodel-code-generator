@@ -340,6 +340,7 @@ class JsonSchemaParser(Parser):
         *,
         data_model_type: Type[DataModel] = pydantic_model.BaseModel,
         data_model_root_type: Type[DataModel] = pydantic_model.CustomRootType,
+        data_model_patternproperties_type: Optional[Type[DataModel]] = pydantic_model.PatternPropertiesType,
         data_type_manager_type: Type[DataTypeManager] = pydantic_model.DataTypeManager,
         data_model_field_type: Type[DataModelFieldBase] = pydantic_model.DataModelField,
         base_class: Optional[str] = None,
@@ -400,6 +401,7 @@ class JsonSchemaParser(Parser):
             source=source,
             data_model_type=data_model_type,
             data_model_root_type=data_model_root_type,
+            data_model_patternproperties_type=data_model_patternproperties_type,
             data_type_manager_type=data_type_manager_type,
             data_model_field_type=data_model_field_type,
             base_class=base_class,
@@ -1221,30 +1223,57 @@ class JsonSchemaParser(Parser):
         reference = self.model_resolver.add(path, name, loaded=True, class_name=True)
         self.set_title(name, obj)
         self.set_additional_properties(name, obj)
-        data_model_root_type = self.data_model_root_type(
-            reference=reference,
-            fields=[
-                self.data_model_field_type(
-                    data_type=data_type,
-                    default=obj.default,
-                    required=required,
-                    constraints=obj.dict() if self.field_constraints else {},
-                    nullable=obj.nullable if self.strict_nullable else None,
-                    strip_default_none=self.strip_default_none,
-                    extras=self.get_field_extras(obj),
-                    use_annotated=self.use_annotated,
-                    use_field_description=self.use_field_description,
-                    original_name=None,
-                    has_default=obj.has_default,
-                )
-            ],
-            custom_base_class=self.base_class,
-            custom_template_dir=self.custom_template_dir,
-            extra_template_data=self.extra_template_data,
-            path=self.current_source_path,
-            nullable=obj.type_has_null,
-        )
-        self.results.append(data_model_root_type)
+        if obj.patternProperties:
+            data_model_root_type = self.data_model_patternproperties_type(
+                reference=reference,
+                fields=[
+                    self.data_model_field_type(
+                        data_type=data_type,
+                        default=obj.default,
+                        required=required,
+                        constraints=obj.dict() if self.field_constraints else {},
+                        nullable=obj.nullable if self.strict_nullable else None,
+                        strip_default_none=self.strip_default_none,
+                        extras=self.get_field_extras(obj),
+                        use_annotated=self.use_annotated,
+                        use_field_description=self.use_field_description,
+                        original_name=None,
+                        has_default=obj.has_default,
+                    )
+                ],
+                custom_base_class=self.base_class,
+                custom_template_dir=self.custom_template_dir,
+                extra_template_data=self.extra_template_data,
+                path=self.current_source_path,
+                nullable=obj.type_has_null,
+            )
+            self.results.append(data_model_root_type)
+        else:
+            data_model_root_type = self.data_model_root_type(
+                reference=reference,
+                fields=[
+                    self.data_model_field_type(
+                        data_type=data_type,
+                        default=obj.default,
+                        required=required,
+                        constraints=obj.dict() if self.field_constraints else {},
+                        nullable=obj.nullable if self.strict_nullable else None,
+                        strip_default_none=self.strip_default_none,
+                        extras=self.get_field_extras(obj),
+                        use_annotated=self.use_annotated,
+                        use_field_description=self.use_field_description,
+                        original_name=None,
+                        has_default=obj.has_default,
+                    )
+                ],
+                custom_base_class=self.base_class,
+                custom_template_dir=self.custom_template_dir,
+                extra_template_data=self.extra_template_data,
+                path=self.current_source_path,
+                nullable=obj.type_has_null,
+            )
+            self.results.append(data_model_root_type)
+
         q.q(__file__, 'parse_root_type()=>self.results.append()', reference, data_model_root_type, self.results)
         return self.data_type(reference=reference)
 
